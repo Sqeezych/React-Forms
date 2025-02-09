@@ -9,9 +9,6 @@ export default function Form () {
     password: '',
     confirmedPassword: '',
   })
-
-  const URL = 'http://192.168.0.103:5000/get_user_tasks/Vova' 
-  fetch(URL).then((response) => response.json()).then((data) => console.log(data))
   
   const [errors, setErrors] = useState({
     email: null,
