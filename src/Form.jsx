@@ -1,9 +1,30 @@
 import { useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import * as yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
 import Input from './Input';
 import styles from './Form.module.css';
 
+const formScheme = yup.object({
+  email: yup
+  .string()
+  .matches(
+    /^[\w_@.]*$/,
+    'Ошибка ввода почты. Допустимые символы: буквы латиницей, цифры, _  @  .'
+  )
+  .max(
+    20,
+    'Почта не должна содержать более 20 символов'
+  ),
+  password: yup
+  .string()
+  .max(20, "Пароль не должен содержать более 20 символов")
+})
+.required()
+
 export default function Form () {
   const submitButtonRef = useRef(null)
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -15,25 +36,51 @@ export default function Form () {
     password: null,
   })
 
+  const {
+    register,
+    handleSubmit,
+    formState: { error },
+  } = useForm({
+    resolver: yupResolver(formScheme),
+  })
+
+  // const emailBlurScheme = yup
+  // .string()
+  // .matches(
+  //   /^[\w_@.]*$/,
+  //   'Ошибка ввода почты. Допустимые символы: буквы латиницей, цифры, _  @  .'
+  // )
+  // .max(
+  //   20,
+  //   'Почта не должна содержать более 20 символов'
+  // )
+
+  // const passwordBlurScheme = yup
+  // .string()
+  // .max(20, "Пароль не должен содержать более 20 символов")
+
+  function validateAndGetErrorMessage (sheme, value) {
+    let errorMessage = null
+
+    try{ 
+      sheme.validateSync(value)
+    } catch({ errors }) {
+      errorMessage = errors
+    }
+    return errorMessage
+  }
+
+
   function onChangeEmail ({ target }) {
     setFormData({...formData, 
       email: target.value,}
     )
   }
-  function onBlurEmail () {
-    if(!/^[\w_@.]*$/.test(formData.email)) {
-      setErrors({...errors, 
-        email: 'Ошибка ввода почты. Допустимые символы: буквы латиницей, цифры, _  @  .',
-      })
-    } else if (formData.email.length > 20) {
-      setErrors({...errors, 
-        email: 'Почта не должна содержать более 20 символов',
-      })
-    } else {
-      setErrors({...errors, 
-        email: null,
-      })
-    }
+  function onBlurEmail ({ target }) {
+    const error = validateAndGetErrorMessage(emailBlurScheme, target.value)
+    setErrors({...errors,
+      email: error
+    })
   }
   
   function onChangePassword ({ target }) {
@@ -42,16 +89,11 @@ export default function Form () {
     )
   }
 
-  function onBlurPassword () {
-    if(formData.password.length > 20) {
-      setErrors({...errors,
-        password: "Пароль не должен содержать более 20 символов",
-      })
-    } else {
-      setErrors({...errors,
-        password: null,
-      })
-    }
+  function onBlurPassword ({ target }) {
+    const error = validateAndGetErrorMessage(passwordBlurScheme, target.value)
+    setErrors({...errors,
+      password: error
+    })
   }
 
   function onChangeConfirmedPassword ({ target }) {
@@ -83,10 +125,11 @@ export default function Form () {
   }
     
     return (
-          <form className={styles.Form} onSubmit={onSubmit}>
+          <form className={styles.Form} onSubmit={handleSubmit(onSubmit)}>
               {errors.email && <div>{errors.email}</div>}
               {errors.password && <div>{errors.password}</div>}
               <Input 
+                name='Email'
                 type='email'
                 placeholder='Email'
                 value={formData.email}
@@ -94,6 +137,7 @@ export default function Form () {
                 onBlur={onBlurEmail}
               />
               <Input 
+              name='Password'
               type="password" 
               placeholder='Пароль' 
               value={formData.password}
@@ -101,6 +145,7 @@ export default function Form () {
               onBlur={onBlurPassword}
               />
               <Input
+              name='Confirm password'
               type="password" 
               placeholder='Повтор пароля' 
               value={formData.confirmedPassword}
@@ -109,7 +154,7 @@ export default function Form () {
               <button disabled={isEmptyForm() || errors.email || errors.password} 
               type='submit'
               ref={submitButtonRef}>
-                Зарегистрироваться
+              Зарегистрироваться
               </button>
           </form>
     );
