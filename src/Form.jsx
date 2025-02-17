@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react';
 import * as yup from 'yup';
-import { yupResolver } from '@hookform/resolvers/yup';
 import Input from './Input';
 import styles from './Form.module.css';
 
