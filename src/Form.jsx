@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import * as yup from 'yup';
-import Input from './Input';
+import Input from './Input.jsx';
 import styles from './Form.module.css';
 
 const blurSchema = yup.object({
@@ -25,8 +25,8 @@ const validateAndGetErrorMessage = (schema, value) => {
 }
 
 export default function Form () {
-  const submitButtonRef = useRef(null)
 
+  const submitButtonRef = useRef(null)
 
   const [formData, setFormData] = useState({
     email: '',
@@ -54,8 +54,8 @@ export default function Form () {
   
   function onChangePassword ({ target }) {
     setFormData({...formData,
-      password: target.value,}
-    )
+      password: target.value
+    })
   }
 
   function onBlurPassword ({ target }) {
@@ -80,7 +80,7 @@ export default function Form () {
       if(formData.password === formData.confirmedPassword) {
         console.log(formData)
       } else {
-          console.log("Пароли не совпадают")
+        console.log("Пароли не совпадают")
       }
     }
   }
@@ -94,7 +94,7 @@ export default function Form () {
   }
     
     return (
-          <form className={styles.Form} onSubmit={handleSubmit(onSubmit)}>
+          <form className={styles.Form} onSubmit={onSubmit}>
               {errors.email && <div>{errors.email}</div>}
               {errors.password && <div>{errors.password}</div>}
               <Input 
