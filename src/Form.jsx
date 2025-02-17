@@ -1,9 +1,33 @@
-import { useRef, useState } from 'react';
+import { useState, useRef } from 'react';
+import * as yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
 import Input from './Input';
 import styles from './Form.module.css';
 
+const blurSchema = yup.object({
+  email: yup.string()
+  .matches(/^[\w_@.]*$/, 'Ошибка ввода почты. Допустимые символы: буквы латиницей, цифры, _  @  .')
+  .max(20, 'Почта не должна содержать более 20 символов')
+  .min(3, 'Почта не должна содержать менее 3х символов'),
+  password: yup.string()
+  .max(20, "Пароль не должен содержать более 20 символов"),
+})
+
+const validateAndGetErrorMessage = (schema, value) => {
+  let errorMessage = null
+  
+  try {
+    schema.validateSync(value)
+  } catch ({ errors }) {
+    errorMessage = errors.join('\n')
+  }
+
+  return errorMessage
+}
+
 export default function Form () {
   const submitButtonRef = useRef(null)
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -20,20 +44,12 @@ export default function Form () {
       email: target.value,}
     )
   }
-  function onBlurEmail () {
-    if(!/^[\w_@.]*$/.test(formData.email)) {
-      setErrors({...errors, 
-        email: 'Ошибка ввода почты. Допустимые символы: буквы латиницей, цифры, _  @  .',
-      })
-    } else if (formData.email.length > 20) {
-      setErrors({...errors, 
-        email: 'Почта не должна содержать более 20 символов',
-      })
-    } else {
-      setErrors({...errors, 
-        email: null,
-      })
-    }
+
+  function onBlurEmail ({ target }) {
+    const newError = validateAndGetErrorMessage(blurSchema.email, target.value)
+    setErrors({errors, 
+      email: newError
+    })
   }
   
   function onChangePassword ({ target }) {
@@ -42,16 +58,11 @@ export default function Form () {
     )
   }
 
-  function onBlurPassword () {
-    if(formData.password.length > 20) {
-      setErrors({...errors,
-        password: "Пароль не должен содержать более 20 символов",
-      })
-    } else {
-      setErrors({...errors,
-        password: null,
-      })
-    }
+  function onBlurPassword ({ target }) {
+    const newError = validateAndGetErrorMessage(blurSchema.password, target.value)
+    setErrors({...errors, 
+      password: newError
+    })
   }
 
   function onChangeConfirmedPassword ({ target }) {
