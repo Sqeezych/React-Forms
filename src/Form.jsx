@@ -27,6 +27,7 @@ const validateAndGetErrorMessage = (schema, value) => {
 export default function Form () {
   const submitButtonRef = useRef(null)
 
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -93,10 +94,11 @@ export default function Form () {
   }
     
     return (
-          <form className={styles.Form} onSubmit={onSubmit}>
+          <form className={styles.Form} onSubmit={handleSubmit(onSubmit)}>
               {errors.email && <div>{errors.email}</div>}
               {errors.password && <div>{errors.password}</div>}
               <Input 
+                name='Email'
                 type='email'
                 placeholder='Email'
                 value={formData.email}
@@ -104,6 +106,7 @@ export default function Form () {
                 onBlur={onBlurEmail}
               />
               <Input 
+              name='Password'
               type="password" 
               placeholder='Пароль' 
               value={formData.password}
@@ -111,6 +114,7 @@ export default function Form () {
               onBlur={onBlurPassword}
               />
               <Input
+              name='Confirm password'
               type="password" 
               placeholder='Повтор пароля' 
               value={formData.confirmedPassword}
@@ -119,7 +123,7 @@ export default function Form () {
               <button disabled={isEmptyForm() || errors.email || errors.password} 
               type='submit'
               ref={submitButtonRef}>
-                Зарегистрироваться
+              Зарегистрироваться
               </button>
           </form>
     );
