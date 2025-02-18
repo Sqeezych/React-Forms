@@ -1,81 +1,36 @@
-import { useState, useRef } from 'react';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import Input from './Input.jsx';
 import styles from './Form.module.css';
 
-const blurSchema = yup.object({
+const fieldsSchema = yup.object({
   email: yup.string()
-  .matches(/^[\w_@.]*$/, 'Ошибка ввода почты. Допустимые символы: буквы латиницей, цифры, _  @  .')
+  .email('Введите корректный email')
   .max(20, 'Почта не должна содержать более 20 символов')
   .min(3, 'Почта не должна содержать менее 3х символов'),
   password: yup.string()
   .max(20, "Пароль не должен содержать более 20 символов"),
 })
 
-const validateAndGetErrorMessage = (schema, value) => {
-  let errorMessage = null
-  
-  try {
-    schema.validateSync(value)
-  } catch ({ errors }) {
-    errorMessage = errors.join('\n')
-  }
-
-  return errorMessage
-}
-
 export default function Form () {
 
-  const submitButtonRef = useRef(null)
-
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmedPassword: '',
+  const {
+    register, 
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      email: '',
+      password: '', 
+      confirmedPassword: '',
+    },
+    resolver: yupResolver(fieldsSchema),
   })
-  
-  const [errors, setErrors] = useState({
-    email: null,
-    password: null,
-  })
 
-  function onChangeEmail ({ target }) {
-    setFormData({...formData, 
-      email: target.value,}
-    )
-  }
+  const emailError = errors.email?.message;
+  const passwordError = errors.password?.message;
 
-  function onBlurEmail ({ target }) {
-    const newError = validateAndGetErrorMessage(blurSchema.email, target.value)
-    setErrors({errors, 
-      email: newError
-    })
-  }
-  
-  function onChangePassword ({ target }) {
-    setFormData({...formData,
-      password: target.value
-    })
-  }
-
-  function onBlurPassword ({ target }) {
-    const newError = validateAndGetErrorMessage(blurSchema.password, target.value)
-    setErrors({...errors, 
-      password: newError
-    })
-  }
-
-  function onChangeConfirmedPassword ({ target }) {
-    setFormData({...formData,
-      confirmedPassword: target.value,}
-    )
-    if(target.value === formData.password) {
-      submitButtonRef.current.focus()
-    }
-  }
-
-  function onSubmit (event) {
-    event.preventDefault();
+  function onSubmit (formData) {
     if(formData.email && formData.password && formData.confirmedPassword) {
       if(formData.password === formData.confirmedPassword) {
         console.log(formData)
@@ -84,46 +39,35 @@ export default function Form () {
       }
     }
   }
-
-  function isEmptyForm() {
-    if(formData.email && formData.password && formData.confirmedPassword) {
-      return false 
-    } else {
-      return true
-    }
-  }
     
     return (
-          <form className={styles.Form} onSubmit={onSubmit}>
-              {errors.email && <div>{errors.email}</div>}
-              {errors.password && <div>{errors.password}</div>}
-              <Input 
-                name='Email'
-                type='email'
-                placeholder='Email'
-                value={formData.email}
-                onChange={onChangeEmail}
-                onBlur={onBlurEmail}
+          <form className={styles.Form} onSubmit={handleSubmit(onSubmit)}>
+              {emailError && <div>{emailError}</div>}
+              {passwordError && <div>{passwordError}</div>}
+
+              <input 
+              name='Email' 
+              type='text' 
+              placeholder='Email'
+              {...register('email')}
               />
-              <Input 
-              name='Password'
-              type="password" 
-              placeholder='Пароль' 
-              value={formData.password}
-              onChange={onChangePassword}
-              onBlur={onBlurPassword}
+              <input 
+              name='Password' 
+              type='password' 
+              placeholder='Пароль'
+              {...register('password')}
               />
-              <Input
-              name='Confirm password'
-              type="password" 
-              placeholder='Повтор пароля' 
-              value={formData.confirmedPassword}
-              onChange={onChangeConfirmedPassword}
+              <input 
+              name='Confirm password' 
+              type='password' 
+              placeholder='Повтор пароля'
+              {...register('confirmedPassword')}
               />
-              <button disabled={isEmptyForm() || errors.email || errors.password} 
-              type='submit'
-              ref={submitButtonRef}>
-              Зарегистрироваться
+
+              <button disabled={!!emailError || !!passwordError} 
+                type='submit'
+              >
+                Зарегистрироваться
               </button>
           </form>
     );
